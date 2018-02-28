@@ -1,0 +1,179 @@
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+
+public class KontoVerwalten {
+
+	public String inhaber;
+	private double stand;
+	public boolean gesperrt;
+ 
+	KontoVerwalten() { }
+ 
+	KontoVerwalten(String inhaber, double stand, boolean gesperrt) {
+		this.inhaber = inhaber;
+		this.stand = stand;
+		this.gesperrt = gesperrt;
+	}
+
+	public double abfragen() {
+		return stand;
+	};
+
+	public void leeren() {
+		stand = 0;
+	};
+
+	public void einzahlen(double betrag) {
+		stand += betrag;
+	};
+
+	public double abheben(double betrag) {
+		if (betrag<=stand) {
+			stand -= betrag;
+			return betrag; }
+		else {
+			return -1;
+		}
+	};
+}
+
+class KontoAnzeige extends JFrame {
+
+	KontoVerwalten konto;
+ 
+	JTextField feldInhaber, feldStand, feldGesperrt;
+ 
+	KontoAnzeige(KontoVerwalten konto) {
+
+		this.konto = konto;
+  
+		setLayout(new GridLayout(0, 1));
+
+		JLabel lab = new JLabel("Inhaber:");
+		lab.setFont(new Font("Arial",Font.BOLD,24));
+		add(lab);
+		feldInhaber = new JTextField();
+		feldInhaber.setFont(new Font("Arial",Font.BOLD,24));
+		add(feldInhaber);
+		lab = new JLabel("Stand:");
+		lab.setFont(new Font("Arial",Font.BOLD,24));
+		add(lab);
+		feldStand = new JTextField();
+		feldStand.setFont(new Font("Arial",Font.BOLD,24));
+		add(feldStand);
+		lab = new JLabel("Gesperrt:");
+		lab.setFont(new Font("Arial",Font.BOLD,24));
+		add(lab);
+		feldGesperrt = new JTextField();
+		feldGesperrt.setFont(new Font("Arial",Font.BOLD,24));
+		add(feldGesperrt);
+  
+		Listener lis = new Listener();
+  
+		JButton but = new JButton("Anzeigen");
+		
+		but.setFont(new Font("Arial",Font.BOLD,24));
+		but.addActionListener(lis);
+		add(but);
+		
+		but = new JButton("Übernehmen");
+		but.setFont(new Font("Arial",Font.BOLD,24));
+		but.addActionListener(lis);
+		add(but);
+		
+		but = new JButton("Laden");
+		but.setFont(new Font("Arial",Font.BOLD,24));
+		but.addActionListener(lis);
+		add(but);
+		
+		but.setFont(new Font("Arial",Font.BOLD,24));
+		but = new JButton("Speichern");
+		but.setFont(new Font("Arial",Font.BOLD,24));
+		but.addActionListener(lis);
+		add(but);
+		
+		but = new JButton("Quit");
+		but.setFont(new Font("Arial",Font.BOLD,24));
+		but.addActionListener(lis);
+		add(but);
+		
+		setLocation(200,200);
+		pack();
+		setVisible(true);
+		setSize(350, 600);
+		setTitle("KontoVerwalten Version 1.1");
+		setResizable(false);
+		setBackground(Color.BLUE);
+	}
+ 
+	class Listener implements ActionListener {
+
+		public void actionPerformed(ActionEvent e) {
+
+			if (e.getActionCommand().equals("Anzeigen")) {
+				feldInhaber.setText(konto.inhaber);
+				feldStand.setText((new Double(konto.abfragen())).toString());
+				feldGesperrt.setText((new Boolean(konto.gesperrt)).toString());
+			}
+
+			if (e.getActionCommand().equals("Übernehmen")) {
+				konto.inhaber = feldInhaber.getText();
+				konto.leeren();
+				konto.einzahlen(Double.parseDouble(feldStand.getText()));
+				konto.gesperrt = Boolean.parseBoolean(feldGesperrt.getText());
+			}
+
+			if (e.getActionCommand().equals("Laden")) {
+				JFileChooser jfc = new JFileChooser();
+				int auswahl = jfc.showOpenDialog(null);
+				if (auswahl==JFileChooser.APPROVE_OPTION) {
+					liesKonto(jfc.getSelectedFile().getName());
+					feldInhaber.setText(konto.inhaber);
+					feldStand.setText((new Double(konto.abfragen())).toString());
+					feldGesperrt.setText((new Boolean(konto.gesperrt)).toString());
+				}
+			}
+
+			if (e.getActionCommand().equals("Speichern")) {
+				String dateiname = JOptionPane.showInputDialog("Dateiname:");
+				speichereKonto(dateiname);
+			}
+
+			if (e.getActionCommand().equals("Quit")) {
+				System.exit(0);
+			}
+		}
+	}
+ 
+	public void liesKonto(String dateiname) {
+		try {
+			FileReader frd = new FileReader(dateiname);
+			BufferedReader brd = new BufferedReader(frd);
+			konto.inhaber = brd.readLine();
+			konto.leeren();
+			konto.einzahlen(Double.parseDouble(brd.readLine()));
+			konto.gesperrt = Boolean.parseBoolean(brd.readLine());
+			frd.close();
+		} 
+		catch (Exception exc) {
+			JOptionPane.showMessageDialog(null,"Fehler beim Laden"); 
+		}
+	}
+
+	public void speichereKonto(String dateiname) {
+		try {
+			FileWriter fwri = new FileWriter(dateiname);
+			PrintWriter pwri = new PrintWriter(fwri);
+			pwri.println(konto.inhaber);
+			pwri.println(konto.abfragen());
+			pwri.println(konto.gesperrt);
+			fwri.close();
+		} 
+		catch (Exception exc) { 
+			JOptionPane.showMessageDialog(null,"Fehler beim Speichern"); 
+		}
+	}
+}
